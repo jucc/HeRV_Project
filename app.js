@@ -34,9 +34,11 @@ function onDeviceReady()
   $('button.app-start-scan')
     .removeClass('mdl-button--disabled')
     .addClass('mdl-color--green-A700')
+  /*
   $('button.app-stop-scan')
     .removeClass('mdl-button--disabled')
     .addClass('mdl-color--deep-orange-900')
+  */
 
   // Attach event listeners.
   $('.app-start-scan').on('click', startScan)
@@ -45,60 +47,27 @@ function onDeviceReady()
 
 function startScan()
 {
-  // Make sure scan is stopped.
-  stopScan()
+  // Change buttons.
+  $('button.app-start-scan')
+    .removeClass('mdl-color--green-A700')
+    .addClass('mdl-button--disabled')
+  $('button.app-stop-scan')
+    .removeClass('mdl-button--disabled')
+    .addClass('mdl-color--deep-orange-900')
 
-  // Start scan.
-  evothings.ble.startScan(
-    function(device)
-    {
-      // Device found. Sometimes an RSSI of +127 is reported.
-      // We filter out these values here.
-      if (device.rssi <= 0)
-      {
-        // Set timeStamp.
-        device.timeStamp = Date.now()
-
-        // Store device in table of found devices.
-        devices[device.address] = device
-      }
-    },
-    function(error)
-    {
-      showMessage('Scan error: ' + error)
-      stopScan()
-    }
-  )
-
-  // Start update timer.
-  updateTimer = setInterval(updateDeviceList, 500)
-
-  // Update UI.
-  $('.mdl-progress').addClass('mdl-progress__indeterminate')
-  showMessage('Scan started')
+  
 }
 
 function stopScan()
 {
-  // Stop scan.
-  evothings.ble.stopScan()
-
-  // Clear devices.
-  devices = {}
-
-  // Stop update timer.
-  if (updateTimer)
-  {
-    clearInterval(updateTimer)
-    updateTimer = null
-  }
-
-  // Update UI.
-  $('.mdl-progress').removeClass('mdl-progress__indeterminate')
-  $('.app-cards').empty()
-  hideDrawerIfVisible()
-
+  $('button.app-start-scan')
+    .removeClass('mdl-button--disabled')
+    .addClass('mdl-color--green-A700')
+  $('button.app-stop-scan')
+    .removeClass('mdl-color--deep-orange-900')
+    .addClass('mdl-button--disabled')
 }
+
 
 main()
 
