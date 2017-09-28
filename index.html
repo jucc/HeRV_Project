@@ -36,20 +36,55 @@
           <a class="app-back mdl-navigation__link" href="javascript:void(0)">Back</a>
         </nav>
       </div>
-		<!-- <img class="logotype" src="ui/images/app-icon.png" alt="HRV Project" /> -->
 
 		<!--<button class="menu" onclick=""><img src="ui/images/menu.svg" /></button>-->
 	</header>
 
+	<!-- Main -->
 	<main class="mdl-layout__content">
-	  <p>Come back soon!</p>
+	  <!-- page-start -->
+      <section>
+        <div class="page-content">
+
+          <!-- Raised button with ripple
+          https://material.google.com/style/color.html#color-color-palette
+          -->
+          <div class="app-buttons">
+            <button class="app-start-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-button--disabled">
+              Start
+            </button>
+            <button class="app-stop-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-button--disabled">
+              Stop
+            </button>
+          </div>
+
+          <div class="mdl-progress mdl-js-progress"></div>
+
+          
+          <div class="app-info">Come back soon for more!</div>
+          <div class="app-info">This app works in Evothings Viewer 1.5 or later.</div>
+          
+          <!-- Found devices are inserted into this div -->
+          <div class="app-cards"></div>
+
+        </div>
+      <!-- End page-content -->
+      </section>
+	  
 	</main>
+
+    <!-- Toast element used for messages -->
+    <div class="mdl-snackbar mdl-js-snackbar">
+      <div class="mdl-snackbar__text"></div>
+      <button class="mdl-snackbar__action" type="button"></button>
+    </div>
 
   </div>
 	<script src="cordova.js"></script>
 	<script src="libs/evothings/evothings.js"></script>
 	<script src="libs/evothings/ui/ui.js"></script>
 	<!-- Libraries Added -->
+	<script src="libs/evothings/easyble/easyble.js"></script>
 	<script src="libs/jquery/jquery-3.1.1.min.js"></script>
 	<script src="libs/fastclick/fastclick.js"></script>
 	<script src="libs/mdl/material.js"></script>

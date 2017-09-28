@@ -1,7 +1,7 @@
 {
-  "name": "hrv-project",
+  "name": "HeRV Project",
   "version": "1.0.0",
-  "title": "HRV Project",
+  "title": "HeRV Project",
   "description": "Heart rate variability project.",
   "tags": [],
   "libraries": [
@@ -14,7 +14,7 @@
   "index-file": "index.html",
   "uuid": "116961b8-7a22-48f9-8758-30a686d724b5",
   "icon": "app-icon.png",
-  "doc-url": "https://github.com/edulira/hrv-project",
-  "long-description": "HRV project developed in Evothings Studio.",
+  "doc-url": "https://github.com/edulira/HeRV_Project",
+  "long-description": "HeRV Project. Developed in Evothings Studio.",
   "cordova-id": "com.evothings.examples.templatebasicapp"
 }
