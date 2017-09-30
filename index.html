@@ -16,8 +16,17 @@
 
 	<!-- <link rel="stylesheet" href="ui/css/evothings-app.cs"> -->
 	<link rel="stylesheet" href="app.css">
-    <link rel="stylesheet" href="libs/mdl/material.css">
-  	<link rel="stylesheet" href="libs/mdl/icons/material-icons.css">
+  <link rel="stylesheet" href="libs/mdl/material.css">
+  <link rel="stylesheet" href="libs/mdl/icons/material-icons.css">
+
+  <script src="cordova.js"></script>
+  <script src="libs/evothings/evothings.js"></script>
+  <script src="libs/evothings/ui/ui.js"></script>
+  <script src="libs/evothings/easyble/easyble.js"></script>
+  <script src="libs/mdl/material.js"></script>
+  <script src="libs/jquery/jquery-3.1.1.min.js"></script>
+  <script src="app.js"></script>
+
 </head>
 
 <body ontouchstart=""><!-- ontouchstart="" enables low-delay CSS transitions. -->
@@ -59,18 +68,19 @@
           </div>
 
           <!-- <div class="mdl-progress mdl-js-progress"></div> -->
-
-          
-          <div class="app-info">Come back soon for more!</div>
-          <div class="app-info">This app works in Evothings Viewer 1.5 or later.</div>
           
           <!-- Found devices are inserted into this div -->
-          <div class="app-cards"></div>
+          <div class="app-cards"><div class="mdl-card__supporting-text">Welcome!</div></div>
+          <div id="hrm" class="mdl-card__supporting-text"></div>
+          <div id="statusText" class="hrm-box"></div>
 
         </div>
       <!-- End page-content -->
       </section>
 	  
+  <div class="bottom-text">Come back soon for more!<br>
+  This app works in Evothings Viewer 1.5 or later.</div>
+
 	</main>
 
     <!-- Toast element used for messages -->
@@ -80,15 +90,10 @@
     </div>
 
   </div>
-	<script src="cordova.js"></script>
-	<script src="libs/evothings/evothings.js"></script>
-	<script src="libs/evothings/ui/ui.js"></script>
-	<!-- Libraries Added -->
-	<script src="libs/evothings/easyble/easyble.js"></script>
-	<script src="libs/jquery/jquery-3.1.1.min.js"></script>
-	<script src="libs/fastclick/fastclick.js"></script>
-	<script src="libs/mdl/material.js"></script>
-	<script src="app.js"></script>
+  <!-- Libraries Added -->
+	<!-- <script src="libs/evothings/evothings.js"></script> -->
+	<!-- <script src="libs/evothings/ui/ui.js"></script> -->
+	
 </body>
 
 </html>

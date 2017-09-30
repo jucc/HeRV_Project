@@ -3,19 +3,13 @@
 ;(function()
 {
 
-// Dictionary of found devices.
-var devices = {}
-
-// Timer that updates the displayed list of devices.
-var updateTimer = null
-
 function main()
 {
   $(function()
   {
     // When document has loaded we attach FastClick to
     // eliminate the 300 ms delay on click events.
-    FastClick.attach(document.body)
+    // FastClick.attach(document.body)
 
     // Event listener for Back button.
     $('.app-back').on('click', function() { history.back() })
@@ -34,11 +28,6 @@ function onDeviceReady()
   $('button.app-start-scan')
     .removeClass('mdl-button--disabled')
     .addClass('mdl-color--green-A700')
-  /*
-  $('button.app-stop-scan')
-    .removeClass('mdl-button--disabled')
-    .addClass('mdl-color--deep-orange-900')
-  */
 
   // Attach event listeners.
   $('.app-start-scan').on('click', startScan)
@@ -55,11 +44,88 @@ function startScan()
     .removeClass('mdl-button--disabled')
     .addClass('mdl-color--deep-orange-900')
 
-  
+  evothings.easyble.stopScan();
+
+  evothings.easyble.reportDeviceOnce(true);
+
+  // Start scanning. Two callback functions are specified.
+  evothings.easyble.startScan(
+    function(device)
+    {
+      if ((device.name).toLowerCase().indexOf('polar h7') >= 0)
+      {
+        sensorFound(device);
+      }
+
+    },
+    function(errorCode)
+    {
+      putOnScreen('Procedure error: ' + errorCode)
+    }
+  );
+}
+
+function sensorFound(device){
+
+  device.connect(
+  function(device)
+  {
+    putOnScreen('Conneted to ' + device.name);
+
+    device.readServices(
+      null,
+      function(device)
+      {
+        device.enableNotification(
+          '00002a37-0000-1000-8000-00805f9b34fb',
+          function(data)
+          {
+            // Formats the data from device.
+            var hrm = parseHeartRate(data);
+
+            // Shows Heart Rate Mesurement.
+            updateHeartRate(hrm.heartRate);
+
+            // Transforme the object to a string.
+            hrm = JSON.stringify(hrm.rrIntervals);
+
+            // Create a vector with one or two mesurements.
+            hrm = hrm.replace('[','');
+            hrm = hrm.replace(']','');
+            hrm = hrm.split(',');
+
+            // Shows RR Intervals
+            for(var i = 0; i < hrm.length; ++i)
+            {
+              updateRRInterval(hrm[i]);
+            }
+
+          },
+          function(errorCode)
+          {
+            putOnScreen('Error ' + errorCode);
+          }
+        );
+      },
+      function(errorCode)
+      {
+        putOnScreen('Error ' + errorCode);
+      });
+  },
+  function(errorCode)
+  {
+    putOnScreen('Error ' + errorCode);
+  });
 }
 
 function stopScan()
 {
+  // Stop ble scan.
+  evothings.easyble.stopScan();
+  evothings.easyble.closeConnectedDevices();
+  putOnScreen('Device disconnected.');
+
+  // Change buttons.
   $('button.app-start-scan')
     .removeClass('mdl-button--disabled')
     .addClass('mdl-color--green-A700')
@@ -68,186 +134,81 @@ function stopScan()
     .addClass('mdl-button--disabled')
 }
 
-
-main()
-
-})();
-/*
-
-function startScan()
-{
-  // Make sure scan is stopped.
-  stopScan()
-
-  // Start scan.
-  evothings.ble.startScan(
-    function(device)
-    {
-      // Device found. Sometimes an RSSI of +127 is reported.
-      // We filter out these values here.
-      if (device.rssi <= 0)
-      {
-        // Set timeStamp.
-        device.timeStamp = Date.now()
-
-        // Store device in table of found devices.
-        devices[device.address] = device
-      }
-    },
-    function(error)
-    {
-      showMessage('Scan error: ' + error)
-      stopScan()
-    }
-  )
-
-  // Start update timer.
-  updateTimer = setInterval(updateDeviceList, 500)
-
-  // Update UI.
-  $('.mdl-progress').addClass('mdl-progress__indeterminate')
-  showMessage('Scan started')
-}
-
-function stopScan()
-{
-  // Stop scan.
-  evothings.ble.stopScan()
-
-  // Clear devices.
-  devices = {}
-
-  // Stop update timer.
-  if (updateTimer)
-  {
-    clearInterval(updateTimer)
-    updateTimer = null
-  }
-
-  // Update UI.
-  $('.mdl-progress').removeClass('mdl-progress__indeterminate')
-  $('.app-cards').empty()
-  hideDrawerIfVisible()
-
-}
-
-function hideDrawerIfVisible()
-{
-  if ($('.mdl-layout__drawer').hasClass('mdl-layout__drawer is-visible'))
-  {
-    document.querySelector('.mdl-layout').MaterialLayout.toggleDrawer()
-  }
-}
-
 function showMessage(message)
 {
   document.querySelector('.mdl-snackbar').MaterialSnackbar.showSnackbar(
   {
     message: message
-  })
+  });
 }
 
-function updateDeviceList()
+function putOnScreen(message)
 {
-  var timeNow = Date.now();
-
-  $.each(devices, function(key, device)
-  {
-    // Only show devices that have been updated during the last 10 seconds.
-    if (device.timeStamp + 10000 > timeNow)
-    {
-       displayDevice(device)
-    }
-    else
-    {
-      // Remove inactive device.
-      removeDevice(device)
-    }
-  })
-}
-
-function displayDevice(device)
-{
-  if (!deviceIsDisplayed(device))
-  {
-    createDevice(device)
-  }
-
-  updateDevice(device)
-}
-
-function deviceIsDisplayed(device)
-{
-  var deviceId = '#' + getDeviceDomId(device)
-  return !!($(deviceId).length)
-}
-
-function updateDevice(device)
-{
-  // Map the RSSI value to a width in percent for the indicator.
-  var distanceBarValue = 100; // Used when RSSI is zero or greater.
-  if (device.rssi < -100) { distanceBarValue = 1; }
-  else if (device.rssi < 0) { distanceBarValue = 100 + device.rssi; }
-
-  var deviceId = '#' + getDeviceDomId(device)
-
-  $(deviceId + ' .device-rssi')
-    .text(device.rssi)
-
-  $(deviceId + ' .device-distance-bar')
-    .css('width', distanceBarValue + 'px')
-
-  if (!device.advertisementData) return
-
-  $(deviceId + ' .device-kCBAdvDataLocalName')
-    .text(device.advertisementData.kCBAdvDataLocalName)
-  $(deviceId + ' .device-kCBAdvDataTxPowerLevel')
-    .text(device.advertisementData.kCBAdvDataTxPowerLevel)
-  $(deviceId + ' .device-kCBAdvDataIsConnectable')
-    .text(device.advertisementData.kCBAdvDataIsConnectable)
-  $(deviceId + ' .device-kCBAdvDataServiceUUIDs')
-    .text(JSON.stringify(device.advertisementData.kCBAdvDataServiceUUIDs))
-  $(deviceId + ' .device-kCBAdvDataServiceData')
-    .text(JSON.stringify(device.advertisementData.kCBAdvDataServiceData))
-}
-
-function createDevice(device)
-{
-  // Create HTML element to display device data.
-  var domId = getDeviceDomId(device);
+  // Create element.
   var element = $(
-    '<div id="' + domId + '" class="mdl-card mdl-card--border mdl-shadow--2dp">'
-    +  '<div class="mdl-card__title">'
-    +    '<h2 class="mdl-card__title-text">Device: ' + device.name + '</h2>'
-    +  '</div>'
-    +  '<div class="mdl-card__supporting-text">'
-    +    'RSSI: <span class="device-rssi"></span><br>'
-    +    'kCBAdvDataLocalName: <span class="device-kCBAdvDataLocalName"></span><br>'
-    +    'kCBAdvDataServiceUUIDs: <span class="device-kCBAdvDataServiceUUIDs"></span><br>'
-    +    'kCBAdvDataServiceData: <span class="device-kCBAdvDataServiceData"></span><br>'
-    +    'kCBAdvDataTxPowerLevel: <span class="device-kCBAdvDataTxPowerLevel"></span><br>'
-    +    'kCBAdvDataIsConnectable: <span class="device-kCBAdvDataIsConnectable"></span><br>'
-    +     '<div class="device-distance-bar" style="width:0px;height:10px;margin-top:20px;background:rgb(200,200,0)"></div>'
-    +  '</div>'
-    + '</div>')
+    '<div class="mdl-card__supporting-text">'
+    +    message
+    +  '</div>')
 
   // Add element.
-  $('.app-cards').append(element)
+  $('.app-cards').html(element);
 }
 
-function removeDevice(device)
+function updateHeartRate(data)
 {
-  // Remove from UI.
-  var deviceId = '#' + getDeviceDomId(device)
-  $(deviceId).remove()
+  // Create element.
+  var element = $(
+    '<div class="mdl-card__supporting-text">'
+    +    data
+    +  '</div>')
 
-  // Delete from model.
-  delete devices[devices.address]
+  // Add element.
+  $('#hrm').html(element);
 }
 
-function getDeviceDomId(device)
+function updateRRInterval(data)
 {
-  return 'device-dom-id-' + device.address.replace(/:/g, "_")
+  $('#statusText').html(data);
 }
 
-*/
+
+// Function to parse the Heart Rate Data
+// Extracted from: https://github.com/WebBluetoothCG/demos/tree/gh-pages/heart-rate-sensor
+function parseHeartRate(value) {
+      value = value.buffer ? value : new DataView(value);
+      let flags = value.getUint8(0);
+      let rate16Bits = flags & 0x1;
+      let result = {};
+      let index = 1;
+      if (rate16Bits) {
+        result.heartRate = value.getUint16(index, /*littleEndian=*/true);
+        index += 2;
+      } else {
+        result.heartRate = value.getUint8(index);
+        index += 1;
+      }
+      let contactDetected = flags & 0x2;
+      let contactSensorPresent = flags & 0x4;
+      if (contactSensorPresent) {
+        result.contactDetected = !!contactDetected;
+      }
+      let energyPresent = flags & 0x8;
+      if (energyPresent) {
+        result.energyExpended = value.getUint16(index, /*littleEndian=*/true);
+        index += 2;
+      }
+      let rrIntervalPresent = flags & 0x10;
+      if (rrIntervalPresent) {
+        let rrIntervals = [];
+        for (; index + 1 < value.byteLength; index += 2) {
+          rrIntervals.push(value.getUint16(index, /*littleEndian=*/true));
+        }
+        result.rrIntervals = rrIntervals;
+      }
+      return result;
+    }
+
+
+main()
+
+})();

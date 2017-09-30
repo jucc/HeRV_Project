@@ -1071,7 +1071,6 @@
 			{
 				// Array that stores services.
 				device.__services = [];
-
 				for (var i = 0; i < services.length; ++i)
 				{
 					var service = services[i];
