@@ -32,6 +32,7 @@ function onDeviceReady()
   // Attach event listeners.
   $('.app-start-scan').on('click', startScan)
   $('.app-stop-scan').on('click', stopScan)
+  $('.app-game').on('click', function(){location.href = 'hervgame.html'})
 }
 
 function startScan()
@@ -43,6 +44,9 @@ function startScan()
   $('button.app-stop-scan')
     .removeClass('mdl-button--disabled')
     .addClass('mdl-color--deep-orange-900')
+  $('button.app-game')
+    .removeClass('mdl-button--disabled')
+    .addClass('mdl-color--blue-500')
 
   evothings.easyble.stopScan();
 
@@ -132,6 +136,9 @@ function stopScan()
   $('button.app-stop-scan')
     .removeClass('mdl-color--deep-orange-900')
     .addClass('mdl-button--disabled')
+  $('button.app-game')
+    .removeClass('mdl-color--deep-orange-900')
+    .addClass('mdl-button--disabled')
 }
 
 function showMessage(message)
@@ -156,16 +163,8 @@ function putOnScreen(message)
 
 function updateHeartRate(data)
 {
-  // Create element.
-  var element = $(
-    '<div class="mdl-card__supporting-text">'
-    +    data
-    +  '</div>')
-
-  // Add element.
-  $('#hrm').html(element);
+  $('#hrm').html(data);
 }
-
 function updateRRInterval(data)
 {
   $('#statusText').html(data);

@@ -43,6 +43,12 @@ and tweak some of the standard layout settings below. */
   color: rgba(0,0,0,0.67);
 }
 
+/* Color of the game button. */
+.game-button-color--lblue
+{
+  color: rgba(12,200,255,0.67);
+}
+
 /* Custom modification of the "burger icon" for the
 drawer menu. We move it to give room for a back button icon. */
 .mdl-layout__drawer-button
