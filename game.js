@@ -6,64 +6,50 @@ var myScore;
 
 
 function startGame() {
-    myGamePiece = new component(30, 30, "red", 10, 120);
+    myGamePiece = new gamePiece(10, 120, 'red', 30, 30);
     myGamePiece.gravity = 0.05;
-    myScore = new component("30px", "Consolas", "black", 280, 40, "text");
+   	myScore = new scorePlacar('black');
     myGameArea.start();
 }
 
 var myGameArea = {
-    canvas : document.createElement("canvas"),
+    canvas : document.createElement('canvas'),
     start : function() {
-        this.canvas.width = window.innerWidth/2;
-        this.canvas.height = window.innerHeight/4;
-        this.context = this.canvas.getContext("2d");
-        var div = document.getElementById("game-canvas");
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight/3;
+        this.context = this.canvas.getContext('2d');
+        var div = document.getElementById('game-canvas');
         div.appendChild(this.canvas);
         this.frameNo = 0;
         this.interval = setInterval(updateGameArea, 20);
-        
         },
     clear : function() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
-function component(width, height, color, x, y, type) {
-    this.type = type;
+function gamePiece(x, y, color, width, height){
     this.score = 0;
     this.width = width;
     this.height = height;
     this.speedX = 0;
-    this.speedY = 0;    
+    this.speedY = 0;
+    this.color = color;
     this.x = x;
     this.y = y;
     this.gravity = 0;
     this.gravitySpeed = 0;
     this.update = function() {
         ctx = myGameArea.context;
-        if (this.type == "text") {
-            ctx.font = this.width + " " + this.height;
-            ctx.fillStyle = color;
-            ctx.fillText(this.text, this.x, this.y);
-        } else if (this.type == "ball") {
-        	ctx.beginPath();
-    		ctx.arc(this.x, this.y, this.width, 0, 2 * Math.PI, false);
-		    ctx.fillStyle = 'green';
-		    ctx.fill();
-		    ctx.lineWidth = 1;
-		    ctx.strokeStyle = '#003300';
-		    ctx.stroke();
-        } else {
-            ctx.fillStyle = color;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
-        }
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
     }
     this.newPos = function() {
         this.gravitySpeed += this.gravity;
         this.x += this.speedX;
         this.y += this.speedY + this.gravitySpeed;
         this.hitBottom();
+        this.hitTop();
     }
     this.hitBottom = function() {
         var rockbottom = myGameArea.canvas.height - this.height;
@@ -72,50 +58,86 @@ function component(width, height, color, x, y, type) {
             this.gravitySpeed = 0;
         }
     }
+    this.hitTop = function() {
+        var limitTop = 30;
+        if (this.y < limitTop) {
+            this.y = limitTop;
+            this.gravitySpeed = 0;
+        }
+    }
     this.crashWith = function(otherobj) {
         var myleft = this.x;
         var myright = this.x + (this.width);
         var mytop = this.y;
         var mybottom = this.y + (this.height);
-        var otherleft = otherobj.x;
-        var otherright = otherobj.x + (otherobj.width);
-        var othertop = otherobj.y;
-        var otherbottom = otherobj.y + (otherobj.height);
+        var otherleft = otherobj.x - (otherobj.radius / 2);
+        var otherright = otherobj.x + (otherobj.radius / 2);
+        var othertop = otherobj.y - (otherobj.radius / 2);
+        var otherbottom = otherobj.y + (otherobj.radius / 2);
         var crash = true;
-        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright) || otherobj.crashed) {
             crash = false;
+        }
+        if (crash) {
+        	otherobj.crashed = true;
         }
         return crash;
     }
 }
 
+function obstacle(x, y, color, radius){
+	this.crashed = false;
+    this.radius = radius;
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.update = function() {
+        ctx = myGameArea.context;
+        ctx.beginPath();
+    	ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+		ctx.fillStyle = this.color;
+		ctx.fill();
+		ctx.lineWidth = 1;
+		//ctx.strokeStyle = '#003300';
+		//ctx.stroke();
+    }
+}
+
+function scorePlacar(color) {
+    this.color = color;
+    this.update = function() {
+        ctx = myGameArea.context;
+        ctx.font = '30px Arial';
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.text, 0, 30);
+    }
+}
+
 function updateGameArea() {
-    var x, height, gap, minHeight, maxHeight, minGap, maxGap;
+    var x, y;
     for (i = 0; i < myObstacles.length; i += 1) {
         if (myGamePiece.crashWith(myObstacles[i])) {
-            return;
+        	myGamePiece.score += 1;
+            myScore.text = 'Score: ' + myGamePiece.score;
+            myScore.update();
         } 
     }
+    
     myGameArea.clear();
     myGameArea.frameNo += 1;
     if (myGameArea.frameNo == 1 || everyinterval(150)) {
         x = myGameArea.canvas.width;
-        minHeight = 0;
-        maxHeight = myGameArea.canvas.height;
-        height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
-        minGap = 50;
-        maxGap = 200;
-        gap = Math.floor(Math.random()*(maxGap-minGap+1)+minGap);
-        myObstacles.push(new component(10, height, "green", x, height + gap, "ball"));
+        y = Math.floor(Math.random() * (myGameArea.canvas.height - 49)) + 40;
+        myObstacles.push(new obstacle(x, y, 'green', 10));
     }
     for (i = 0; i < myObstacles.length; i += 1) {
         myObstacles[i].x += -1;
         myObstacles[i].update();
     }
-    myScore.text="SCORE: " + myGameArea.frameNo;
-    myScore.update();
     myGamePiece.newPos();
     myGamePiece.update();
+    myScore.text = 'Score: ' + myGamePiece.score;
+    myScore.update();
 }
 
 function everyinterval(n) {
@@ -123,6 +145,10 @@ function everyinterval(n) {
     return false;
 }
 
+// Used to control gamePiece. Insert hrv data here.
 function accelerate(n) {
     myGamePiece.gravity = n;
 }
+
+// Trying to make it work with scree tap.
+// $("game-canvas").bind("tap", accelerate(-0.2));
