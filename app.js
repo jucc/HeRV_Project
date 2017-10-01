@@ -13,6 +13,7 @@ function main()
 
     // Event listener for Back button.
     $('.app-back').on('click', function() { history.back() })
+    $('.app-game-start').on('click', startGame)
   })
 
   // Event handler called when Cordova plugins have loaded.

@@ -16,6 +16,7 @@
 
 	<!-- <link rel="stylesheet" href="ui/css/evothings-app.cs"> -->
 	<link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="game.css">
   <link rel="stylesheet" href="libs/mdl/material.css">
   <link rel="stylesheet" href="libs/mdl/icons/material-icons.css">
 
@@ -26,7 +27,7 @@
   <script src="libs/mdl/material.js"></script>
   <script src="libs/jquery/jquery-3.1.1.min.js"></script>
   <script src="app.js"></script>
-
+  <script src="game.js"></script>
 </head>
 
 <body ontouchstart=""><!-- ontouchstart="" enables low-delay CSS transitions. -->
@@ -56,11 +57,15 @@
         <div class="page-content">
 
           <div class="app-cards"><div class="mdl-card__supporting-text">Game is Been Developed!</div></div>
-          
+          <div class="app-buttons">
+            <button class="app-game-start mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white .mdl-color--cyan-300">
+              Start
+            </button>
+          </div>
         </div>
       <!-- End page-content -->
       </section>
-      
+  <div id="game-canvas"></div>
 	  
   <div class="bottom-text">Come back soon for more!<br>
   This app works in Evothings Viewer 1.5 or later.</div>
