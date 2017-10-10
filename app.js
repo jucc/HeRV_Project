@@ -4,6 +4,8 @@
 // APP VARIABLES
 var faketimer = 0;
 var hrvcentralvalue;
+var hrvmin;
+var hrvmax;
 
 
 // GAME VARIABLES
@@ -12,7 +14,7 @@ var myObstacles = [];
 var myScore;
 
 
-// PURE APP CODE AREA INIT
+/******* APP AREA CODE BEGIN *******/
 function main()
 {
   $(function()
@@ -119,26 +121,23 @@ function sensorFound(device){
             updateRRInterval(hrm[0]);
 
             // For game - need to be better thought
-            if ( faketimer <= 10 )
+            if (faketimer <= 60)
             {
               myGamePiece.updateHistory(hrm[0]);
             }
             else
             {
-              if (faketimer == 11)
-                {
-                  hrvcentralvalue = myGamePiece.hrvmedia();
-                  putOnScreen(hrvcentralvalue);
-                  myGameArea.start();
-                }
-              if( hrm[0] > hrvcentralvalue )
+              if (faketimer == 61)
               {
-                accelerate(-0.2);
+                hrvcentralvalue = Math.floor(myGamePiece.hrvmedia());
+                putOnScreen('Média: ' + hrvcentralvalue);
+                myGamePiece.setMinMax();
+                myGameArea.start();
+                hrvcentralvalue = putOnScale(hrvcentralvalue);
+                accelerate(hrvcentralvalue);
               }
-              else if( hrm[0] < hrvcentralvalue)
-              {
-                accelerate(0.05);
-              }
+              if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
+              if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
             }
 
           },
@@ -245,13 +244,13 @@ function parseHeartRate(value) {
       }
       return result;
     }
-// PURE APP CODE AREA END
+/******* APP AREA CODE END *******/
 
 
-// GAME AREA CODE INIT
+/******* GAME AREA CODE BEGIN *******/
 function startGame() {
-  myGamePiece = new gamePiece(10, 120, 'red', 30, 30);
-  myGamePiece.gravity = 0.05;
+  myGamePiece = new gamePiece(0, 0, 'red', 30, 30);
+  myGamePiece.gravity = 0;
   myScore = new scorePlacar('black');
   startScan();
 }
@@ -301,12 +300,20 @@ function gamePiece(x, y, color, width, height){
     media = media / this.hrvhistory.length;
     return media;
   }
+  this.setMinMax = function(){
+    hrvmax = 0;
+    hrvmin = 99999;
+    for(var i = 0; i < this.hrvhistory.length; ++i)
+    {
+      if (hrvmax < this.hrvhistory[i]) { hrvmax = this.hrvhistory[i]; }
+      if (hrvmin > this.hrvhistory[i]) { hrvmin = this.hrvhistory[i]; }
+    }
+  }
   this.newPos = function() {
-    this.gravitySpeed += this.gravity;
-    this.x += this.speedX;
-    this.y += this.speedY + this.gravitySpeed;
+    this.y = this.gravity;
     this.hitBottom();
     this.hitTop();
+
   }
   this.hitBottom = function() {
     var rockbottom = myGameArea.canvas.height - this.height;
@@ -373,23 +380,25 @@ function scorePlacar(color) {
 function updateGameArea() {
     var x, y;
     for (i = 0; i < myObstacles.length; i += 1) {
-        if (myGamePiece.crashWith(myObstacles[i])) {
-          myGamePiece.score += 1;
-            myScore.text = 'Score: ' + myGamePiece.score;
-            myScore.update();
-        } 
+      if (myGamePiece.crashWith(myObstacles[i])) {
+        myGamePiece.score += 1;
+        myScore.text = 'Score: ' + myGamePiece.score;
+        myScore.update();
+      } 
     }
     
     myGameArea.clear();
     myGameArea.frameNo += 1;
-    if (myGameArea.frameNo == 1 || everyinterval(150)) {
-        x = myGameArea.canvas.width;
-        y = Math.floor(Math.random() * (myGameArea.canvas.height - 49)) + 40;
-        myObstacles.push(new obstacle(x, y, 'green', 10));
+    if (myGameArea.frameNo == 1 || everyinterval(150))
+    {
+      x = myGameArea.canvas.width;
+      y = Math.floor(Math.random() * (myGameArea.canvas.height - 49)) + 40;
+      myObstacles.push(new obstacle(x, y, 'green', 10));
     }
-    for (i = 0; i < myObstacles.length; i += 1) {
-        myObstacles[i].x += -1;
-        myObstacles[i].update();
+    for (i = 0; i < myObstacles.length; i += 1) 
+    {
+      myObstacles[i].x += -1;
+      myObstacles[i].update();
     }
     myGamePiece.newPos();
     myGamePiece.update();
@@ -398,16 +407,21 @@ function updateGameArea() {
 }
 
 function everyinterval(n) {
-    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
-    return false;
+  if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+  return false;
 }
 
 // Used to control gamePiece. Insert hrv data here.
 function accelerate(n) {
-    myGamePiece.gravity = n;
+  myGamePiece.gravity = n;
 }
 
-// GAME AREA CODE END
+// function to scale the rr measure
+function putOnScale(value) {
+  var x =  ((myGameArea.canvas.height-30)*(value-hrvmin)/(hrvmax-hrvmin))+30;
+  return x;
+}
+/******* GAME AREA CODE END *******/
 
 
 // START APP
