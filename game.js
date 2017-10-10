@@ -6,10 +6,10 @@ var myScore;
 
 
 function startGame() {
-    myGamePiece = new gamePiece(10, 120, 'red', 30, 30);
-    myGamePiece.gravity = 0.05;
-   	myScore = new scorePlacar('black');
-    myGameArea.start();
+  myGamePiece = new gamePiece(10, 120, 'red', 30, 30);
+  myGamePiece.gravity = 0.05;
+  myScore = new scorePlacar('black');
+  myGameArea.start();
 }
 
 var myGameArea = {
@@ -29,6 +29,7 @@ var myGameArea = {
 }
 
 function gamePiece(x, y, color, width, height){
+  this.hrvhistory = [];
     this.score = 0;
     this.width = width;
     this.height = height;
@@ -43,6 +44,18 @@ function gamePiece(x, y, color, width, height){
         ctx = myGameArea.context;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    this.updateHistory = function(value){
+      hrvhistory.push(value);
+    }
+    this.hrvmedia = function(){
+      var media = 0;
+      for(var i = 0; i < this.hrvhistory.length; ++i)
+      {
+        media += this.hrvhistory[i];
+      }
+      media = media / this.hrvhistory.length;
+      return media;
     }
     this.newPos = function() {
         this.gravitySpeed += this.gravity;
@@ -79,14 +92,14 @@ function gamePiece(x, y, color, width, height){
             crash = false;
         }
         if (crash) {
-        	otherobj.crashed = true;
+          otherobj.crashed = true;
         }
         return crash;
     }
 }
 
 function obstacle(x, y, color, radius){
-	this.crashed = false;
+  this.crashed = false;
     this.radius = radius;
     this.x = x;
     this.y = y;
@@ -94,12 +107,12 @@ function obstacle(x, y, color, radius){
     this.update = function() {
         ctx = myGameArea.context;
         ctx.beginPath();
-    	ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-		ctx.fillStyle = this.color;
-		ctx.fill();
-		ctx.lineWidth = 1;
-		//ctx.strokeStyle = '#003300';
-		//ctx.stroke();
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    //ctx.strokeStyle = '#003300';
+    //ctx.stroke();
     }
 }
 
@@ -117,7 +130,7 @@ function updateGameArea() {
     var x, y;
     for (i = 0; i < myObstacles.length; i += 1) {
         if (myGamePiece.crashWith(myObstacles[i])) {
-        	myGamePiece.score += 1;
+          myGamePiece.score += 1;
             myScore.text = 'Score: ' + myGamePiece.score;
             myScore.update();
         } 

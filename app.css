@@ -1,4 +1,4 @@
-/* CSS for the BLE Scan app. We use Material Design Lite (MDL)
+/* CSS for the HerV Project app. We use Material Design Lite (MDL)
 and tweak some of the standard layout settings below. */
 
 /* Set spacing for page content. */
@@ -41,12 +41,6 @@ and tweak some of the standard layout settings below. */
 {
   text-align: center;
   color: rgba(0,0,0,0.67);
-}
-
-/* Color of the game button. */
-.game-button-color--lblue
-{
-  color: rgba(12,200,255,0.67);
 }
 
 /* Custom modification of the "burger icon" for the
