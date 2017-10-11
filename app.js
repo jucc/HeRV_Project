@@ -7,7 +7,7 @@ var hrvcentralvalue;
 var hrvmin;
 var hrvmax;
 var gameFlag;
-var caliTime = 10;
+var caliTime = 60;
 
 
 // GAME VARIABLES
