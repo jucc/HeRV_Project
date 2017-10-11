@@ -44,44 +44,75 @@ function onDeviceReady()
     {
       $(this).html('Parar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
-      $('#activateGame').toggleClass('mdl-color--blue-500 mdl-button--disabled')
+      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#activateGame').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $(this).toggleClass('app-start-scan app-stop-scan')
       $('#activateGame').prop('disabled', true)
+      $('#training').prop('disabled', true)
       startScan();
     }
     else
     {
       $(this).html('Monitorar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
-      $('#activateGame').toggleClass('mdl-color--blue-500 mdl-button--disabled')
+      $('#activateGame').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $(this).toggleClass('app-start-scan app-stop-scan')
       $('#activateGame').prop('disabled', false)
+      $('#training').prop('disabled', false)
       clearScreen();
       stopScan();
     }
   })
-
   $('#activateGame').on('click', function(){
     if ( $(this).hasClass('inactive') )
     {
       $(this).html('Parar')
-      $(this).toggleClass('mdl-color--blue-500 mdl-color--deep-orange-900')
+      $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
       $(this).toggleClass('inactive active')
       $('#onoffbt').prop('disabled', true)
+      $('#training').prop('disabled', true)
       $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       gameFlag = true;
       startGame();
     }
     else
     {
       $(this).html('Jogar')
-      $(this).toggleClass('mdl-color--blue-500 mdl-color--deep-orange-900')
+      $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
       $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $(this).toggleClass('inactive active')
       $('#onoffbt').prop('disabled', false)
+      $('#training').prop('disabled', false)
+      $('.mdl-progress').hide();
       gameFlag = false;
       clearScreen();
       stopGame();
+    }
+  })
+  $('#training').on('click', function(){
+    if ( $(this).hasClass('inactive') )
+    {
+      $(this).html('Finalizar')
+      $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
+      $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#activateGame').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $(this).toggleClass('inactive active')
+      $('#activateGame').prop('disabled', true)
+      $('#onoffbt').prop('disabled', true)
+    }
+    else
+    {
+      $(this).html('Treinar')
+      $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
+      $('#activateGame').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $(this).toggleClass('inactive active')
+      $('#activateGame').prop('disabled', false)
+      $('#onoffbt').prop('disabled', false)
+      clearScreen();
     }
   })
 
@@ -174,8 +205,8 @@ function sensorFound(device){
                 updateHeartRate(hrm.heartRate);
                 
                 // Uses HRM to move gamepiece.
-                if (putOnScale(hrm.heartRate) > hrvcentralvalue) { accelerate(myGamePiece.y-10); }
-                if (putOnScale(hrm.heartRate) < hrvcentralvalue) { accelerate(myGamePiece.y+10); }
+                if (putOnScale(hrm.heartRate) > hrvcentralvalue) { accelerate(myGamePiece.y-20); }
+                if (putOnScale(hrm.heartRate) < hrvcentralvalue) { accelerate(myGamePiece.y+20); }
 
                 // Uncomment to use RR Intervals instead of HRM
                 //if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
@@ -311,8 +342,11 @@ function initialbuttons()
     '<button id="onoffbt" class="app-start-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
   + 'Monitorar'
   + '</button>'
-  + '<button id="activateGame" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--blue-500">'
+  + '<button id="activateGame" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
   + 'Jogar'
+  + '</button>'
+  + '<button id="training" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
+  + 'Treinar'
   + '</button>');
 
   // Add element.
@@ -358,6 +392,8 @@ function startGame()
 
 function stopGame()
 {
+  clearInterval(myGameArea.interval);
+  myObstacles = [];
   stopScan();
   clearScreen();
 }
