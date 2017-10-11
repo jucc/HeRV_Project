@@ -6,6 +6,7 @@ var faketimer = 0;
 var hrvcentralvalue;
 var hrvmin;
 var hrvmax;
+var gameFlag;
 
 
 // GAME VARIABLES
@@ -19,10 +20,6 @@ function main()
 {
   $(function()
   {
-    // When document has loaded we attach FastClick to
-    // eliminate the 300 ms delay on click events.
-    // FastClick.attach(document.body)
-
     // Event listener for Back button.
     $('.app-back').on('click', function() { history.back() })
     initialbuttons();
@@ -38,35 +35,57 @@ function main()
 function onDeviceReady()
 {
 
+  $('.mdl-progress').hide();
+
   // Attach event listeners.
   $('#onoffbt').on('click', function(){
     if ( $(this).hasClass('app-start-scan') )
     {
-      $(this).html('Off');
+      $(this).html('Parar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
-      $(this).toggleClass('app-start-scan app-stop-scan');
+      $('#activateGame').toggleClass('mdl-color--blue-500 mdl-button--disabled')
+      $(this).toggleClass('app-start-scan app-stop-scan')
+      $('#activateGame').prop('disabled', true)
       startScan();
     }
     else
     {
-      $(this).html('On');
+      $(this).html('Monitorar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
-      $(this).toggleClass('app-start-scan app-stop-scan');
-      $('.app-cards').html('');
-      $('#hrm').html('');
-      $('#statusText').html('');
-      stopScan(); 
+      $('#activateGame').toggleClass('mdl-color--blue-500 mdl-button--disabled')
+      $(this).toggleClass('app-start-scan app-stop-scan')
+      $('#activateGame').prop('disabled', false)
+      clearScreen();
+      stopScan();
     }
   })
 
-  $('.app-game').on('click', function(){
-    gamebuttons();
+  $('#activateGame').on('click', function(){
+    if ( $(this).hasClass('inactive') )
+    {
+      $(this).html('Parar')
+      $(this).toggleClass('mdl-color--blue-500 mdl-color--deep-orange-900')
+      $(this).toggleClass('inactive active')
+      $('#onoffbt').prop('disabled', true)
+      $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      gameFlag = true;
+      startGame();
+    }
+    else
+    {
+      $(this).html('Jogar')
+      $(this).toggleClass('mdl-color--blue-500 mdl-color--deep-orange-900')
+      $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $(this).toggleClass('inactive active')
+      $('#onoffbt').prop('disabled', false)
+      gameFlag = false;
+      clearScreen();
+      stopGame();
+    }
   })
 
-  $('.app-game-start').on('click', function(){
-    startGame();
-  })
 }
+
 
 function startScan()
 {
@@ -97,7 +116,8 @@ function sensorFound(device){
   device.connect(
   function(device)
   {
-    putOnScreen('Conneted to ' + device.name);
+    clearScreen();
+    showMessage('Conneted to ' + device.name + '!');
 
     device.readServices(
       null,
@@ -107,52 +127,59 @@ function sensorFound(device){
           '00002a37-0000-1000-8000-00805f9b34fb',
           function(data)
           {
-
-           faketimer += 1;
             // Formats the data from device.
             var hrm = parseHeartRate(data);
-            var hr = hrm.heartRate;
-
-            // Shows Heart Rate Mesurement.
-            //updateHeartRate(hrm.heartRate);
-
-            // Shows HRM Data
-            updateHeartRate(hr);
-
-            // Transforme the object to a string.
-            hrm = JSON.stringify(hrm.rrIntervals);
-
-            // Create a vector with one or two mesurements.
-            hrm = hrm.replace('[','');
-            hrm = hrm.replace(']','');
-            hrm = hrm.split(',');
-
-            // Shows RR Intervals
-            //updateRRInterval(hrm[0]);
-
-            // For game - need to be better thought
-            if (faketimer <= 60)
+            
+            if( gameFlag )
             {
-              //myGamePiece.updateHistory(hrm[0]);
-              myGamePiece.updateHistory(hr);
+              faketimer += 1;
+
+              // Can we do it better?
+              if (faketimer <= 10)
+              {
+                if (faketimer == 1) { statusCalibrating(); }
+
+                // To play with the RR Intervals
+                //myGamePiece.updateHistory(hrm[0]);
+                
+                // To play with the heart measure
+                myGamePiece.updateHistory(hrm.heartRate);
+              }
+              else
+              {
+                if (faketimer == 11)
+                {
+                  clearCalibrating();
+                  hrvcentralvalue = Math.floor(myGamePiece.hrvmedia());
+                  putOnScreen('Média: ' + hrvcentralvalue);
+                  myGamePiece.setMinMax();
+                  myGameArea.start();
+                  hrvcentralvalue = putOnScale(hrvcentralvalue);
+                  accelerate(hrvcentralvalue);
+                }
+                updateHeartRate(hrm.heartRate);
+                //if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
+                if (putOnScale(hrm.heartRate) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
+                //if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
+                if (putOnScale(hrm.heartRate) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
+              }
             }
             else
             {
-              if (faketimer == 61)
-              {
-                hrvcentralvalue = Math.floor(myGamePiece.hrvmedia());
-                putOnScreen('Média: ' + hrvcentralvalue);
-                myGamePiece.setMinMax();
-                myGameArea.start();
-                hrvcentralvalue = putOnScale(hrvcentralvalue);
-                accelerate(hrvcentralvalue);
-              }
-              //if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
-              if (putOnScale(hr) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
-              //if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
-              if (putOnScale(hr) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
-            }
+              // Shows Heart Rate Mesurement.
+              updateHeartRate(hrm.heartRate);
 
+              // Transforme the object to a string.
+              hrm = JSON.stringify(hrm.rrIntervals);
+
+              // Create a vector with one or two mesurements.
+              hrm = hrm.replace('[','');
+              hrm = hrm.replace(']','');
+              hrm = hrm.split(',');
+
+              // Shows RR Intervals
+              updateRRInterval(hrm[0]);
+            }
           },
           function(errorCode)
           {
@@ -176,7 +203,7 @@ function stopScan()
   // Stop ble scan.
   evothings.easyble.stopScan();
   evothings.easyble.closeConnectedDevices();
-  putOnScreen('Device disconnected.');
+  showMessage('Device disconnected.');
   faketimer = 0;
 }
 
@@ -203,13 +230,25 @@ function putOnScreen(message)
 
 function updateHeartRate(data)
 {
-  $('#hrm').html(data);
+  var element = $(
+    '<div class="mdl-card__supporting-text">Batimento Cardíaco: ' + data + '</div>')
+  $('#hrm').html(element)
 }
 function updateRRInterval(data)
 {
-  $('#statusText').html(data);
+  var element = $(
+  '<div class="mdl-card__supporting-text">Intervalo RR: ' + data + '</div>')
+  $('#statusText').html(element);
 }
 
+function clearScreen()
+{
+  $('#hrm').empty();
+  $('#statusText').empty();
+  $('.app-cards').empty();
+  $('#game-canvas').empty();
+  $('#barra').empty();
+}
 
 // Function to parse the Heart Rate Data
 // Extracted from: https://github.com/WebBluetoothCG/demos/tree/gh-pages/heart-rate-sensor
@@ -252,36 +291,57 @@ function initialbuttons()
   // Create element.
   var element = $( 
     '<button id="onoffbt" class="app-start-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
-  + 'On'
+  + 'Monitorar'
   + '</button>'
-  + '<button id="activateGame" class="app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--blue-500">'
-  + 'HeRV Game'
+  + '<button id="activateGame" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--blue-500">'
+  + 'Jogar'
   + '</button>');
 
   // Add element.
   $('#initial-buttons').html(element);
 }
 
-function gamebuttons()
+function statusCalibrating()
 {
   // Create element.
-  var element = $(
-    '<button id="start" class="app-game-start mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white .mdl-color--cyan-300">'
-    +'Start'
-    +'</button>');
+  var element = $( 
+    '<div class="mdl-card__supporting-text">Calibrando o jogo! Respire normalmente, isso demora aproximadamente 1 minuto...</div>'
+  + '<div class="mdl-progress mdl-js-progress"></div>');
 
   // Add element.
-  $('#gamebuttons').html(element);
+  $('.mdl-progress').show();
+  $('.app-cards').html(element);
 }
+
+function clearCalibrating()
+{
+  // Create element.
+  var element = $( 
+    '<div class="mdl-card__supporting-text">Vamos Jogar!</div>'
+  );
+  
+  $('.mdl-progress').hide();
+  // Add element.
+  $('.app-cards').html(element);
+}
+
 /******* APP AREA CODE END *******/
 
 
 /******* GAME AREA CODE BEGIN *******/
-function startGame() {
+function startGame() 
+{
   myGamePiece = new gamePiece(0, 0, 'red', 30, 30);
   myGamePiece.gravity = 0;
   myScore = new scorePlacar('black');
+
   startScan();
+}
+
+function stopGame()
+{
+  stopScan();
+  clearScreen();
 }
 
 var myGameArea = {
