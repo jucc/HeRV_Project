@@ -104,10 +104,13 @@ function sensorFound(device){
            faketimer += 1;
             // Formats the data from device.
             var hrm = parseHeartRate(data);
+            var hr = hrm.heartRate;
 
             // Shows Heart Rate Mesurement.
             //updateHeartRate(hrm.heartRate);
-            updateHeartRate(faketimer);
+
+            // Shows HRM Data
+            updateHeartRate(hr);
 
             // Transforme the object to a string.
             hrm = JSON.stringify(hrm.rrIntervals);
@@ -118,12 +121,13 @@ function sensorFound(device){
             hrm = hrm.split(',');
 
             // Shows RR Intervals
-            updateRRInterval(hrm[0]);
+            //updateRRInterval(hrm[0]);
 
             // For game - need to be better thought
             if (faketimer <= 60)
             {
-              myGamePiece.updateHistory(hrm[0]);
+              //myGamePiece.updateHistory(hrm[0]);
+              myGamePiece.updateHistory(hr);
             }
             else
             {
@@ -136,8 +140,10 @@ function sensorFound(device){
                 hrvcentralvalue = putOnScale(hrvcentralvalue);
                 accelerate(hrvcentralvalue);
               }
-              if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
-              if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
+              //if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
+              if (putOnScale(hr) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
+              //if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
+              if (putOnScale(hr) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
             }
 
           },
