@@ -7,6 +7,7 @@ var hrvcentralvalue;
 var hrvmin;
 var hrvmax;
 var gameFlag;
+var caliTime = 10;
 
 
 // GAME VARIABLES
@@ -135,7 +136,7 @@ function sensorFound(device){
               faketimer += 1;
 
               // Can we do it better?
-              if (faketimer <= 10)
+              if (faketimer <= caliTime)
               {
                 if (faketimer == 1) { statusCalibrating(); }
 
@@ -147,21 +148,38 @@ function sensorFound(device){
               }
               else
               {
-                if (faketimer == 11)
+                if (faketimer == caliTime + 1)
                 {
                   clearCalibrating();
-                  hrvcentralvalue = Math.floor(myGamePiece.hrvmedia());
-                  putOnScreen('Média: ' + hrvcentralvalue);
+                  // Uncomment to use the media instead of median.
+                  //hrvcentralvalue = Math.floor(myGamePiece.hrvmedia());
+                  //putOnScreen('Essa é sua média:' + hrvcentralvalue);
+
+                  // Uses median to padronize the moviment.
+                  hrvcentralvalue = Math.floor(myGamePiece.hrvmedian());
+                  putOnScreen('Seu batimento mediano:' + hrvcentralvalue);
+
+                  // Takes the highest and lowest measures to scale game.
                   myGamePiece.setMinMax();
+
+                  // Initiate game.
                   myGameArea.start();
+
+                  // Puts the gamepiece in the 'center' of game area.
                   hrvcentralvalue = putOnScale(hrvcentralvalue);
                   accelerate(hrvcentralvalue);
+
                 }
+
                 updateHeartRate(hrm.heartRate);
+                
+                // Uses HRM to move gamepiece.
+                if (putOnScale(hrm.heartRate) > hrvcentralvalue) { accelerate(myGamePiece.y-10); }
+                if (putOnScale(hrm.heartRate) < hrvcentralvalue) { accelerate(myGamePiece.y+10); }
+
+                // Uncomment to use RR Intervals instead of HRM
                 //if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
-                if (putOnScale(hrm.heartRate) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
                 //if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
-                if (putOnScale(hrm.heartRate) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
               }
             }
             else
@@ -389,14 +407,14 @@ function gamePiece(x, y, color, width, height){
     media = media / this.hrvhistory.length;
     return media;
   }
+  this.hrvmedian = function(){
+    this.hrvhistory.sort();
+    return this.hrvhistory[Math.ceil((this.hrvhistory.length-1)/2)];
+  }
   this.setMinMax = function(){
-    hrvmax = 0;
-    hrvmin = 99999;
-    for(var i = 0; i < this.hrvhistory.length; ++i)
-    {
-      if (hrvmax < this.hrvhistory[i]) { hrvmax = this.hrvhistory[i]; }
-      if (hrvmin > this.hrvhistory[i]) { hrvmin = this.hrvhistory[i]; }
-    }
+    this.hrvhistory.sort();
+    hrvmax = this.hrvhistory[this.hrvhistory.length-1];
+    hrvmin = this.hrvhistory[0];
   }
   this.newPos = function() {
     this.y = this.gravity;
