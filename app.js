@@ -25,7 +25,7 @@ function main()
 
     // Event listener for Back button.
     $('.app-back').on('click', function() { history.back() })
-    $('.app-game-start').on('click', startGame)
+    initialbuttons();
   })
 
   // Event handler called when Cordova plugins have loaded.
@@ -37,32 +37,39 @@ function main()
 
 function onDeviceReady()
 {
-  // Un-gray buttons.
-  $('button.app-start-scan')
-    .removeClass('mdl-button--disabled')
-    .addClass('mdl-color--green-A700')
 
   // Attach event listeners.
-  $('.app-start-scan').on('click', startScan)
-  $('.app-stop-scan').on('click', stopScan)
+  $('#onoffbt').on('click', function(){
+    if ( $(this).hasClass('app-start-scan') )
+    {
+      $(this).html('Off');
+      $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
+      $(this).toggleClass('app-start-scan app-stop-scan');
+      startScan();
+    }
+    else
+    {
+      $(this).html('On');
+      $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
+      $(this).toggleClass('app-start-scan app-stop-scan');
+      $('.app-cards').html('');
+      $('#hrm').html('');
+      $('#statusText').html('');
+      stopScan(); 
+    }
+  })
+
   $('.app-game').on('click', function(){
-    stopScan();
-    location.href = 'hervgame.html';
+    gamebuttons();
+  })
+
+  $('.app-game-start').on('click', function(){
+    startGame();
   })
 }
 
 function startScan()
 {
-  // Change buttons.
-  $('button.app-start-scan')
-    .removeClass('mdl-color--green-A700')
-    .addClass('mdl-button--disabled')
-  $('button.app-stop-scan')
-    .removeClass('mdl-button--disabled')
-    .addClass('mdl-color--deep-orange-900')
-  $('button.app-game')
-    .removeClass('mdl-button--disabled')
-    .addClass('mdl-color--blue-500')
 
   evothings.easyble.stopScan();
 
@@ -171,17 +178,6 @@ function stopScan()
   evothings.easyble.closeConnectedDevices();
   putOnScreen('Device disconnected.');
   faketimer = 0;
-
-  // Change buttons.
-  $('button.app-start-scan')
-    .removeClass('mdl-button--disabled')
-    .addClass('mdl-color--green-A700')
-  $('button.app-stop-scan')
-    .removeClass('mdl-color--deep-orange-900')
-    .addClass('mdl-button--disabled')
-  $('button.app-game')
-    .removeClass('mdl-color--deep-orange-900')
-    .addClass('mdl-button--disabled')
 }
 
 function showMessage(message)
@@ -250,6 +246,33 @@ function parseHeartRate(value) {
       }
       return result;
     }
+
+function initialbuttons()
+{
+  // Create element.
+  var element = $( 
+    '<button id="onoffbt" class="app-start-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
+  + 'On'
+  + '</button>'
+  + '<button id="activateGame" class="app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--blue-500">'
+  + 'HeRV Game'
+  + '</button>');
+
+  // Add element.
+  $('#initial-buttons').html(element);
+}
+
+function gamebuttons()
+{
+  // Create element.
+  var element = $(
+    '<button id="start" class="app-game-start mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white .mdl-color--cyan-300">'
+    +'Start'
+    +'</button>');
+
+  // Add element.
+  $('#gamebuttons').html(element);
+}
 /******* APP AREA CODE END *******/
 
 

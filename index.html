@@ -58,32 +58,21 @@
           <!-- Raised button with ripple
           https://material.google.com/style/color.html#color-color-palette
           -->
-          <div class="app-buttons">
-            <button class="app-start-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-button--disabled">
-              Connect
-            </button>
-            <button class="app-stop-scan mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-button--disabled">
-              Disconnect
-            </button>
-          </div>
+          <div id="initial-buttons" class="app-buttons"></div>
 
           <!-- <div class="mdl-progress mdl-js-progress"></div> -->
-          
-          <!-- Found devices are inserted into this div -->
+
           <div class="app-cards"><div class="mdl-card__supporting-text">Welcome!</div></div>
-          <div id="hrm" class="hrm-box"></div>
-          <div id="statusText" class="hrm-box"></div>
+          <div id="hrm" class="mdl-card__supporting-text"></div>
+          <div id="statusText" class="mdl-card__supporting-text"></div>
+
+          <div id="gamebuttons" class="app-buttons"></div>
 
         </div>
       <!-- End page-content -->
       </section>
 
-  <div class="app-buttons">
-    <button class="app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-button--disabled">
-      HeRV Game
-    </button>
-  </div>
-	  
+	   <div id="game-canvas"></div>
   <div class="bottom-text">Come back soon for more!<br>
   This app works in Evothings Viewer 1.5 or later.</div>
 
