@@ -6,8 +6,15 @@ var faketimer = 0;
 var hrvcentralvalue;
 var hrvmin;
 var hrvmax;
-var gameFlag;
-var caliTime = 60;
+var trainningOp = 0;
+
+// optionFlag
+// -1 - null option
+// 0 - heart monitor
+// 1 - HeRV game
+// 2 - trainning
+var optionFlag = -1;
+var caliTime = 6;
 
 
 // GAME VARIABLES
@@ -44,11 +51,12 @@ function onDeviceReady()
     {
       $(this).html('Parar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
-      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#trainning').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $('#activateGame').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $(this).toggleClass('app-start-scan app-stop-scan')
       $('#activateGame').prop('disabled', true)
-      $('#training').prop('disabled', true)
+      $('#trainning').prop('disabled', true)
+      optionFlag = 0;
       startScan();
     }
     else
@@ -56,10 +64,11 @@ function onDeviceReady()
       $(this).html('Monitorar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
       $('#activateGame').toggleClass('mdl-color--green-A700 mdl-button--disabled')
-      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#trainning').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $(this).toggleClass('app-start-scan app-stop-scan')
       $('#activateGame').prop('disabled', false)
-      $('#training').prop('disabled', false)
+      $('#trainning').prop('disabled', false)
+      optionFlag = -1;
       clearScreen();
       stopScan();
     }
@@ -71,10 +80,10 @@ function onDeviceReady()
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
       $(this).toggleClass('inactive active')
       $('#onoffbt').prop('disabled', true)
-      $('#training').prop('disabled', true)
+      $('#trainning').prop('disabled', true)
       $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
-      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
-      gameFlag = true;
+      $('#trainning').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      optionFlag = 1;
       startGame();
     }
     else
@@ -82,17 +91,17 @@ function onDeviceReady()
       $(this).html('Jogar')
       $(this).toggleClass('mdl-color--green-A700 mdl-color--deep-orange-900')
       $('#onoffbt').toggleClass('mdl-color--green-A700 mdl-button--disabled')
-      $('#training').toggleClass('mdl-color--green-A700 mdl-button--disabled')
+      $('#trainning').toggleClass('mdl-color--green-A700 mdl-button--disabled')
       $(this).toggleClass('inactive active')
       $('#onoffbt').prop('disabled', false)
-      $('#training').prop('disabled', false)
+      $('#trainning').prop('disabled', false)
       $('.mdl-progress').hide();
-      gameFlag = false;
+      optionFlag = -1;
       clearScreen();
       stopGame();
     }
   })
-  $('#training').on('click', function(){
+  $('#trainning').on('click', function(){
     if ( $(this).hasClass('inactive') )
     {
       $(this).html('Finalizar')
@@ -102,6 +111,9 @@ function onDeviceReady()
       $(this).toggleClass('inactive active')
       $('#activateGame').prop('disabled', true)
       $('#onoffbt').prop('disabled', true)
+      optionFlag = 2;
+      startScan();
+
     }
     else
     {
@@ -112,7 +124,9 @@ function onDeviceReady()
       $(this).toggleClass('inactive active')
       $('#activateGame').prop('disabled', false)
       $('#onoffbt').prop('disabled', false)
+      optionFlag = -1;
       clearScreen();
+      stopScan();
     }
   })
 
@@ -162,7 +176,21 @@ function sensorFound(device){
             // Formats the data from device.
             var hrm = parseHeartRate(data);
             
-            if( gameFlag )
+            // Heart Rate Mesurement.
+
+            // Transforme the object to a string.
+            var rrinterval = JSON.stringify(hrm.rrIntervals);
+
+            // Create a vector with one or two mesurements.
+            rrinterval = rrinterval.replace('[','');
+            rrinterval = rrinterval.replace(']','');
+            rrinterval = rrinterval.split(',');
+
+            // Shows Data
+            updateHeartRate(hrm.heartRate, rrinterval[0]);            
+
+            // Game Mode
+            if( optionFlag == 1 )
             {
               faketimer += 1;
 
@@ -188,7 +216,7 @@ function sensorFound(device){
 
                   // Uses median to padronize the moviment.
                   hrvcentralvalue = Math.floor(myGamePiece.hrvmedian());
-                  putOnScreen('Seu batimento mediano:' + hrvcentralvalue);
+                  putOnScreen('Seu batimento mediano: ' + hrvcentralvalue);
 
                   // Takes the highest and lowest measures to scale game.
                   myGamePiece.setMinMax();
@@ -202,32 +230,67 @@ function sensorFound(device){
 
                 }
 
-                updateHeartRate(hrm.heartRate);
+                //updateHeartRate(hrm.heartRate);
                 
                 // Uses HRM to move gamepiece.
                 if (putOnScale(hrm.heartRate) > hrvcentralvalue) { accelerate(myGamePiece.y-20); }
                 if (putOnScale(hrm.heartRate) < hrvcentralvalue) { accelerate(myGamePiece.y+20); }
 
                 // Uncomment to use RR Intervals instead of HRM
-                //if (putOnScale(hrm[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
-                //if (putOnScale(hrm[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
+                //if (putOnScale(rrinterval[0]) > hrvcentralvalue) { accelerate(myGamePiece.y-5); }
+                //if (putOnScale(rrinterval[0]) < hrvcentralvalue) { accelerate(myGamePiece.y+5); }
               }
             }
-            else
+              
+            // Trainning Mode
+            if (optionFlag == 2)
             {
-              // Shows Heart Rate Mesurement.
-              updateHeartRate(hrm.heartRate);
+              if( faketimer == 0)
+              {
+                startTimer(15);
+              }
 
-              // Transforme the object to a string.
-              hrm = JSON.stringify(hrm.rrIntervals);
+              // Generates Command every 120 heartmeasure. Can we make it better?
+              if (faketimer % 120 == 0)
+              {
+                var opt = Math.floor(Math.random() * 3) + 1;
+                
+                // Ensure the same command won't be given twice in a row.
+                while(opt == trainningOp){
+                  opt = Math.floor(Math.random() * 3) + 1;
+                }
 
-              // Create a vector with one or two mesurements.
-              hrm = hrm.replace('[','');
-              hrm = hrm.replace(']','');
-              hrm = hrm.split(',');
+                trainningOp = opt;
 
-              // Shows RR Intervals
-              updateRRInterval(hrm[0]);
+                switch(trainningOp){
+                  case 1:
+                    var element = $(
+                      '<div class="mdl-card__supporting-text">Aumente seus batimentos!<br>'
+                      + 'Batimento base: ' + hrm.heartRate+ '<br>'
+                      + 'RR Intervalo base: ' + rrinterval[0] + '<br>'
+                      + '</div>')
+                    $('#commands').html(element)
+                    break;
+                  case 2:
+                    var element = $(
+                      '<div class="mdl-card__supporting-text">Mantenha seus batimentos constantes!<br>'
+                      + 'Batimento base: ' + hrm.heartRate+ '<br>'
+                      + 'RR Intervalo base: ' + rrinterval[0] + '<br>'
+                      + '</div>')
+                    $('#commands').html(element)
+                    break;
+                  case 3:
+                    var element = $(
+                      '<div class="mdl-card__supporting-text">Diminua seus batimentos!<br>'
+                      + 'Batimento base: ' + hrm.heartRate+ '<br>'
+                      + 'RR Intervalo base: ' + rrinterval[0] + '<br>'
+                      + '</div>')
+                    $('#commands').html(element)
+                }
+              }
+
+              faketimer += 1;
+
             }
           },
           function(errorCode)
@@ -277,16 +340,81 @@ function putOnScreen(message)
 }
 
 
-function updateHeartRate(data)
+// Creates a countdown timer of 'time' minutes.
+// Parameter must be an integer greater than 1.
+// Base code obtained from: https://www.w3schools.com/howto/howto_js_countdown.asp
+function startTimer(time)
+{
+  // Set we're counting down to
+  var countDownDate = new Date().getTime() + (60000 * time);
+
+  // Update the count down every 1 second
+  var repeat = setInterval(function() {
+    // Get todays date and time
+    var now = new Date().getTime();
+    
+    // Find the distance between now an the count down date
+    var distance = countDownDate - now;
+
+    // Time calculations for days, hours, minutes and seconds
+    var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    // Output the result.
+    if (days > 0)
+    {
+      var element = $('<div class="mdl-card__supporting-text"> Tempo restante: '
+      + days + 'd ' 
+      + hours + 'h ' 
+      + minutes + 'm ' 
+      + seconds + 's'
+      + '</div>');      
+      $('.app-cards').html(element);
+    }
+    else{
+      if (hours > 0){
+        var element = $('<div class="mdl-card__supporting-text"> Tempo restante: '
+        + hours + 'h ' 
+        + minutes + 'm ' 
+        + seconds + 's'
+        + '</div>'); 
+        $('.app-cards').html(element);
+      }
+      else
+      {
+        var element = $('<div class="mdl-card__supporting-text"> Tempo restante: '
+        + minutes + 'm ' 
+        + seconds + 's'
+        + '</div>'); 
+        $('.app-cards').html(element);
+      }
+    }
+    
+    $('#trainning').on('click', function(){
+      clearInterval(repeat);
+    })
+
+    // If the count down is over, write some text 
+    if (distance < 0) {
+      clearInterval(repeat);
+      $('.app-cards').html('<div class="mdl-card__supporting-text">We are done for today!</div>');
+    }
+  }, 1000);
+}
+
+function updateHeartRate(data1, data2)
 {
   var element = $(
-    '<div class="mdl-card__supporting-text">Batimento Cardíaco: ' + data + '</div>')
+    '<div class="mdl-card__supporting-text">Seu batimento cardíaco: ' + data1 + '<br>'
+  + 'Intervalo RR: ' + data2 + '</div>')
   $('#hrm').html(element)
 }
 function updateRRInterval(data)
 {
   var element = $(
-  '<div class="mdl-card__supporting-text">Intervalo RR: ' + data + '</div>')
+  '<div class="mdl-card__supporting-text">Seu intervalo RR: ' + data + '</div>')
   $('#statusText').html(element);
 }
 
@@ -297,6 +425,7 @@ function clearScreen()
   $('.app-cards').empty();
   $('#game-canvas').empty();
   $('#barra').empty();
+  $('#commands').empty();
 }
 
 // Function to parse the Heart Rate Data
@@ -345,7 +474,7 @@ function initialbuttons()
   + '<button id="activateGame" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
   + 'Jogar'
   + '</button>'
-  + '<button id="training" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
+  + '<button id="trainning" class="inactive app-game mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color-text--white mdl-color--green-A700">'
   + 'Treinar'
   + '</button>');
 
@@ -394,6 +523,7 @@ function stopGame()
 {
   clearInterval(myGameArea.interval);
   myObstacles = [];
+  faketimer = 0;
   stopScan();
   clearScreen();
 }
@@ -561,8 +691,8 @@ function accelerate(n) {
 
 // function to scale the rr measure
 function putOnScale(value) {
-  var x =  ((myGameArea.canvas.height-30)*(value-hrvmin)/(hrvmax-hrvmin))+30;
-  return x;
+  var scale =  ((myGameArea.canvas.height-30)*(value-hrvmin)/(hrvmax-hrvmin))+30;
+  return scale;
 }
 /******* GAME AREA CODE END *******/
 
